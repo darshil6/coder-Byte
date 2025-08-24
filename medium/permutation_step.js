@@ -10,54 +10,84 @@
  * @return {number}
  */
 function permutationStep(num) {
-    const permutations = Array.from(
-        new Set( // use Set to filter for unique values
-            permute(num.toString().split(''))
-                .map(number => number.join(''))
-                .map(Number)
-        )
-    );
-
-    permutations.sort((a, b) => a - b);
-
-    const largerPermutations = permutations.filter(
-        permutation => permutation > num
-    );
-
-    if (largerPermutations.length > 0) {
-        return largerPermutations[0];
+    let digits = String(num).split("").map(Number);
+  
+    // Step 1: find pivot
+    let i = digits.length - 2;
+    while (i >= 0 && digits[i] >= digits[i + 1]) i--;
+  
+    if (i < 0) return -1; // already highest permutation
+  
+    // Step 2: find successor
+    let j = digits.length - 1;
+    while (digits[j] <= digits[i]) j--;
+  
+    // Step 3: swap
+    [digits[i], digits[j]] = [digits[j], digits[i]];
+  
+    // Step 4: reverse suffix
+    let left = i + 1, right = digits.length - 1;
+    while (left < right) {
+      [digits[left], digits[right]] = [digits[right], digits[left]];
+      left++; right--;
     }
-    return -1;
-}
+  
+    return parseInt(digits.join(""), 10);
+  }
 
-// https://en.wikipedia.org/wiki/Heap's_algorithm
-// Iterative
-function permute(arr) {
-    let count = Array(arr.length).fill(0);
+console.log(permutationStep(12453))
 
-    const results = [arr.slice()];
 
-    let i = 0;
-    while (i < arr.length) {
-        if (count[i] < i) {
-            if (i % 2 === 0) {
-                const temp = arr[0];
-                arr[0] = arr[i];
-                arr[i] = temp;
-            } else {
-                const temp = arr[count[i]];
-                arr[count[i]] = arr[i];
-                arr[i] = temp;
-            }
-            results.push(arr.slice());
-            count[i]++;
-            i = 0;
-        } else {
-            count[i] = 0;
-            i++;
-        }
-    }
-    return results;
-}
 
-module.exports = permutationStep;
+// function permutationStep(num) {
+//     const permutations = Array.from(
+//         new Set( // use Set to filter for unique values
+//             permute(num.toString().split(''))
+//                 .map(number => number.join(''))
+//                 .map(Number)
+//         )
+//     );
+
+//     permutations.sort((a, b) => a - b);
+
+//     const largerPermutations = permutations.filter(
+//         permutation => permutation > num
+//     );
+
+//     if (largerPermutations.length > 0) {
+//         return largerPermutations[0];
+//     }
+//     return -1;
+// }
+
+// // https://en.wikipedia.org/wiki/Heap's_algorithm
+// // Iterative
+// function permute(arr) {
+//     let count = Array(arr.length).fill(0);
+
+//     const results = [arr.slice()];
+
+//     let i = 0;
+//     while (i < arr.length) {
+//         if (count[i] < i) {
+//             if (i % 2 === 0) {
+//                 const temp = arr[0];
+//                 arr[0] = arr[i];
+//                 arr[i] = temp;
+//             } else {
+//                 const temp = arr[count[i]];
+//                 arr[count[i]] = arr[i];
+//                 arr[i] = temp;
+//             }
+//             results.push(arr.slice());
+//             count[i]++;
+//             i = 0;
+//         } else {
+//             count[i] = 0;
+//             i++;
+//         }
+//     }
+//     return results;
+// }
+
+// module.exports = permutationStep;

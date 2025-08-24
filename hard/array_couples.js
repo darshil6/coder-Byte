@@ -15,34 +15,62 @@
  * @param  {array} arr
  * @return {string}
  */
+
 function arrayCouples(arr) {
-    const unmatchedPairs = [];
+    let used = new Array(arr.length).fill(false);
+    let incorrect = [];
+  
     for (let i = 0; i < arr.length; i += 2) {
-        let left = arr[i];
-        let right = arr[i + 1];
-        if (!pairInArray(arr, [right, left], i)) {
-            unmatchedPairs.push([left, right]);
+      if (used[i]) continue;
+  
+      let a = arr[i];
+      let b = arr[i + 1];
+      let found = false;
+  
+      for (let j = i + 2; j < arr.length; j += 2) {
+        if (!used[j] && arr[j] === b && arr[j + 1] === a) {
+          used[i] = used[i + 1] = used[j] = used[j + 1] = true;
+          found = true;
+          break;
         }
+      }
+  
+      if (!found) {
+        incorrect.push(a, b);
+      }
     }
-    return unmatchedPairs.length === 0 ? 'yes' : unmatchedPairs.join(',');
-}
+  
+    return incorrect.length === 0 ? "yes" : incorrect.join(",");
+  }
+  
+// function arrayCouples(arr) {
+//     const unmatchedPairs = [];
+//     for (let i = 0; i < arr.length; i += 2) {
+//         let left = arr[i];
+//         let right = arr[i + 1];
+//         if (!pairInArray(arr, [right, left], i)) {
+//             unmatchedPairs.push([left, right]);
+//         }
+//     }
+//     return unmatchedPairs.length === 0 ? 'yes' : unmatchedPairs.join(',');
+// }
 
-/**
- * Iterates over array of numbers by index delta of 2 and checks for a pair of
- * numbers
- * @param  {array} arr array of numbers
- * @param  {array} pair array of length 2, a pair of numbers
- * @param  {number} excludeIndex an even numbered index to skip
- * @return {boolean}
- */
-function pairInArray(arr, pair, excludeIndex) {
-    let [left, right] = pair;
-    for (let i = 0; i < arr.length; i += 2) {
-        if (excludeIndex !== i && arr[i] === left && arr[i + 1] === right) {
-            return true;
-        }
-    }
-    return false;
-}
+// /**
+//  * Iterates over array of numbers by index delta of 2 and checks for a pair of
+//  * numbers
+//  * @param  {array} arr array of numbers
+//  * @param  {array} pair array of length 2, a pair of numbers
+//  * @param  {number} excludeIndex an even numbered index to skip
+//  * @return {boolean}
+//  */
+// function pairInArray(arr, pair, excludeIndex) {
+//     let [left, right] = pair;
+//     for (let i = 0; i < arr.length; i += 2) {
+//         if (excludeIndex !== i && arr[i] === left && arr[i + 1] === right) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
 
-module.exports = arrayCouples;
+// module.exports = arrayCouples;

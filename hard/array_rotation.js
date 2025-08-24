@@ -15,14 +15,22 @@
  * @param  {array} arr
  * @return {string}
  */
+
 function arrayRotation(arr) {
-    const rotateDelta = arr[0];
+    const rotateDelta = arr[0] % arr.length;
+    ans = [...arr.slice(rotateDelta , arr.length) , ...arr.slice(0 ,rotateDelta)]
+    return ans.join('')
 
-    const newArray = arr
-        .slice(rotateDelta, arr.length)
-        .concat(arr.slice(0, rotateDelta));
-
-    return newArray.join('');
 }
+console.log(arrayRotation([3, 2, 1, 6]))
+// function arrayRotation(arr) {
+//     const rotateDelta = arr[0];
 
-module.exports = arrayRotation;
+//     const newArray = arr
+//         .slice(rotateDelta, arr.length)
+//         .concat(arr.slice(0, rotateDelta));
+
+//     return newArray.join('');
+// }
+
+// module.exports = arrayRotation;

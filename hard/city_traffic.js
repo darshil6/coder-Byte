@@ -23,7 +23,7 @@
  * 46) = 46.
  *
  * Your program should determine the maximum traffic for every single city and
- * return the answers in a comma separated string in the format:
+ * return the answers in a comma separated string in the format: 
  * city:max_traffic,city:max_traffic,... The cities should be outputted in
  * sorted order by the city number. For the above example, the output would
  * therefore be: 1:82,2:53,3:80,4:79,5:70,7:46,8:38,15:68,38:45. The cities will
@@ -35,132 +35,186 @@
  * @param  {array} strArr
  * @return {string}
  */
+
 function cityTraffic(strArr) {
-    'use strict';
-
-    const graph = new Cities();
-
-    // Populate graph with nodes and connections
-    const reverseConnections = [];
-    strArr.forEach(city => {
-        let [namePopulation, edges] = city.split(':');
-        namePopulation = Number(namePopulation);
-        edges = JSON.parse(edges);
-
-        const cityNode = graph.addNode(namePopulation);
-
-        edges.forEach(edge => {
-            cityNode.addEdge(edge);
-            // Cannot add bidirectional connections yet because not all nodes
-            // are created at this time
-            reverseConnections.push([edge, namePopulation]);
-        });
-    });
-
-    // Add bidirectional connections
-    reverseConnections.forEach(connection => {
-        const [nodeA, nodeB] = connection;
-        graph.node(nodeA).addEdge(nodeB);
-    });
-
-    const trafficData = [];
-
-    // Get max traffic of each city
-    for (const city of graph) {
-        const [namePopulation, cityNode] = city;
-        const maxTraffic = graph.maxTrafficFromOneRoad(namePopulation);
-        trafficData.push({ namePopulation, maxTraffic });
+    const graph = {};
+    const populations = {};
+  
+    // Step 1: Parse input
+    for (let s of strArr) {
+      let [city, rest] = s.split(":");
+      city = parseInt(city, 10);
+      let neighbors = rest.replace(/\[|\]/g, "").split(",").filter(x => x);
+      neighbors = neighbors.map(Number);
+  
+      populations[city] = city; // population = city value
+      graph[city] = neighbors;
     }
-
-    trafficData.sort((a, b) => {
-        return a.namePopulation - b.namePopulation;
-    });
-
-    const trafficDataString = trafficData
-        .map(city => `${city.namePopulation}:${city.maxTraffic}`)
-        .join(',');
-
-    return trafficDataString;
-}
-
-class Node {
-    constructor(key) {
-        this.key = key;
-        this.edges = new Map();
-    }
-
-    addEdge(key, weight = 1) {
-        this.edges.set(key, weight);
-    }
-
-    hasEdge(key) {
-        return this.edges.has(key);
-    }
-}
-
-class Graph {
-    constructor() {
-        this.nodes = new Map();
-    }
-
-    *[Symbol.iterator]() {
-        const nodeItr = this.nodes[Symbol.iterator]();
-        for (const node of nodeItr) {
-            yield node;
+  
+    // Step 2: Compute total population
+    const totalPopulation = Object.values(populations).reduce((a, b) => a + b, 0);
+  
+    // Step 3: DFS to compute subtree populations
+    const subtreeSum = {};
+    function dfs(node, parent) {
+      let sum = populations[node];
+      for (let nei of graph[node]) {
+        if (nei !== parent) {
+          sum += dfs(nei, node);
         }
+      }
+      subtreeSum[node] = sum;
+      return sum;
     }
-
-    addNode(key) {
-        this.nodes.set(key, new Node(key));
-        return this.node(key);
-    }
-
-    node(key) {
-        return this.nodes.get(key);
-    }
-}
-
-class Cities extends Graph {
-    constructor() {
-        super();
-    }
-
-    maxTrafficFromOneRoad(key) {
-        const city = this.node(key);
-
-        let edgeTraffic = [];
-        city.edges.forEach((_, edgeKey) => {
-            edgeTraffic.push(this.sumTrafficFromAllRoads(edgeKey, [key]));
-        });
-
-        if (edgeTraffic.length === 0) {
-            return 0;
+  
+    dfs(parseInt(Object.keys(graph)[0], 10), -1); // start from any city
+  
+    // Step 4: Calculate max traffic for each city
+    const result = [];
+    for (let city of Object.keys(graph).map(Number).sort((a, b) => a - b)) {
+      let maxTraffic = 0;
+      for (let nei of graph[city]) {
+        let subPop = subtreeSum[nei] < subtreeSum[city] ? subtreeSum[nei] : totalPopulation - subtreeSum[city];
+        // Actually, we need to check correctly:
+        if (subtreeSum[nei] < subtreeSum[city]) {
+          subPop = subtreeSum[nei];
+        } else {
+          subPop = totalPopulation - subtreeSum[city];
         }
-
-        return Math.max(...edgeTraffic);
+        maxTraffic = Math.max(maxTraffic, subPop);
+      }
+      result.push(`${city}:${maxTraffic}`);
     }
+  
+    return result.join(",");
+  }
+  
+// function cityTraffic(strArr) {
+//     'use strict';
 
-    sumTrafficFromAllRoads(key, visited = []) {
-        const city = this.node(key);
+//     const graph = new Cities();
 
-        visited = visited.slice();
-        visited.push(key);
+//     // Populate graph with nodes and connections
+//     const reverseConnections = [];
+//     strArr.forEach(city => {
+//         let [namePopulation, edges] = city.split(':');
+//         namePopulation = Number(namePopulation);
+//         edges = JSON.parse(edges);
 
-        let edgeTraffic = [];
-        city.edges.forEach((weight, edgeKey) => {
-            if (!visited.includes(edgeKey)) {
-                edgeTraffic.push(this.sumTrafficFromAllRoads(edgeKey, visited));
-            }
-        });
+//         const cityNode = graph.addNode(namePopulation);
 
-        if (edgeTraffic.length === 0) {
-            return key;
-        }
+//         edges.forEach(edge => {
+//             cityNode.addEdge(edge);
+//             // Cannot add bidirectional connections yet because not all nodes
+//             // are created at this time
+//             reverseConnections.push([edge, namePopulation]);
+//         });
+//     });
 
-        const edgeSum = edgeTraffic.reduce((sum, val) => (sum += val), 0);
+//     // Add bidirectional connections
+//     reverseConnections.forEach(connection => {
+//         const [nodeA, nodeB] = connection;
+//         graph.node(nodeA).addEdge(nodeB);
+//     });
 
-        return edgeSum + key;
-    }
-}
+//     const trafficData = [];
 
-module.exports = cityTraffic;
+//     // Get max traffic of each city
+//     for (const city of graph) {
+//         const [namePopulation, cityNode] = city;
+//         const maxTraffic = graph.maxTrafficFromOneRoad(namePopulation);
+//         trafficData.push({ namePopulation, maxTraffic });
+//     }
+
+//     trafficData.sort((a, b) => {
+//         return a.namePopulation - b.namePopulation;
+//     });
+
+//     const trafficDataString = trafficData
+//         .map(city => `${city.namePopulation}:${city.maxTraffic}`)
+//         .join(',');
+
+//     return trafficDataString;
+// }
+
+// class Node {
+//     constructor(key) {
+//         this.key = key;
+//         this.edges = new Map();
+//     }
+
+//     addEdge(key, weight = 1) {
+//         this.edges.set(key, weight);
+//     }
+
+//     hasEdge(key) {
+//         return this.edges.has(key);
+//     }
+// }
+
+// class Graph {
+//     constructor() {
+//         this.nodes = new Map();
+//     }
+
+//     *[Symbol.iterator]() {
+//         const nodeItr = this.nodes[Symbol.iterator]();
+//         for (const node of nodeItr) {
+//             yield node;
+//         }
+//     }
+
+//     addNode(key) {
+//         this.nodes.set(key, new Node(key));
+//         return this.node(key);
+//     }
+
+//     node(key) {
+//         return this.nodes.get(key);
+//     }
+// }
+
+// class Cities extends Graph {
+//     constructor() {
+//         super();
+//     }
+
+//     maxTrafficFromOneRoad(key) {
+//         const city = this.node(key);
+
+//         let edgeTraffic = [];
+//         city.edges.forEach((_, edgeKey) => {
+//             edgeTraffic.push(this.sumTrafficFromAllRoads(edgeKey, [key]));
+//         });
+
+//         if (edgeTraffic.length === 0) {
+//             return 0;
+//         }
+
+//         return Math.max(...edgeTraffic);
+//     }
+
+//     sumTrafficFromAllRoads(key, visited = []) {
+//         const city = this.node(key);
+
+//         visited = visited.slice();
+//         visited.push(key);
+
+//         let edgeTraffic = [];
+//         city.edges.forEach((weight, edgeKey) => {
+//             if (!visited.includes(edgeKey)) {
+//                 edgeTraffic.push(this.sumTrafficFromAllRoads(edgeKey, visited));
+//             }
+//         });
+
+//         if (edgeTraffic.length === 0) {
+//             return key;
+//         }
+
+//         const edgeSum = edgeTraffic.reduce((sum, val) => (sum += val), 0);
+
+//         return edgeSum + key;
+//     }
+// }
+
+// module.exports = cityTraffic;

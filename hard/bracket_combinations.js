@@ -27,5 +27,5 @@ function factorial(num) {
 function choose(num, k) {
     return factorial(num) / (factorial(k) * factorial(num - k));
 }
-
-module.exports = bracketCombinations;
+console.log(bracketCombinations(3))
+// module.exports = bracketCombinations;

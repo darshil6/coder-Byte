@@ -39,7 +39,10 @@ function intersectingLines(strArr) {
     if (pxDenominator === 0 || pyDenominator === 0) {
         return 'no intersection';
     }
-
+    console.log(pxNumerator)
+    console.log(pxDenominator)
+    console.log(pyNumerator)
+    console.log(pyDenominator)
     const pxString = formatFractionToString(pxNumerator, pxDenominator);
     const pyString = formatFractionToString(pyNumerator, pyDenominator);
 
@@ -68,7 +71,9 @@ function formatFractionToString(numerator, denominator) {
     const gcf = greatestCommonFactor(numerator, denominator);
     numerator /= gcf;
     denominator /= gcf;
-
+    // console.log(gcf)
+    console.log(numerator)
+    console.log(denominator)
     // Combine signs and remove from elements to add at end
     sign = Math.sign(numerator) * Math.sign(denominator) === 1 ? '' : '-';
     numerator = Math.abs(numerator);
@@ -86,4 +91,6 @@ function formatFractionToString(numerator, denominator) {
     return str;
 }
 
-module.exports = intersectingLines;
+console.log(intersectingLines(["(3,0)","(1,4)","(0,-3)","(2,3)"]))
+
+// module.exports = intersectingLines;

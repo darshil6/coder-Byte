@@ -27,75 +27,127 @@
  * @return {string}
  */
 function hamiltonianPath(strArr) {
-    // Parse input
-    let [nodes, edges, path] = strArr.map(str =>
-        str.substr(1, str.length - 2).split(',')
-    );
-
-    const graph = new Graph();
-
-    // Add empty nodes
-    nodes.forEach(key => {
-        graph.addNode(key);
-    });
-
-    // Add edges
-    edges.forEach(edge => {
-        const [nodeA, nodeB] = edge.split('-');
-        graph.node(nodeA).addEdge(nodeB);
-        graph.node(nodeB).addEdge(nodeA);
-    });
-
-    // https://en.wikipedia.org/wiki/Hamiltonian_path
-
-    const missingConnections = graph.getMissingPathConnections(path);
-
-    if (missingConnections.length === 0) {
-        return 'yes';
+    // Parse vertices
+    const vertices = strArr[0]
+      .replace(/[()]/g, "")
+      .split(",");
+  
+    // Parse edges into adjacency list
+    const edges = strArr[1]
+      .replace(/[()]/g, "")
+      .split(",");
+    const graph = {};
+    for (let v of vertices) graph[v] = new Set();
+    for (let e of edges) {
+      const [u, v] = e.split("-");
+      graph[u].add(v);
+      graph[v].add(u);
     }
-    return missingConnections[0];
-}
-
-class Graph {
-    constructor() {
-        this.nodes = new Map();
+  
+    // Parse path
+    const path = strArr[2]
+      .replace(/[()]/g, "")
+      .split(",");
+  
+    // Check if path uses all vertices exactly once
+    if (path.length !== vertices.length ||
+        new Set(path).size !== vertices.length) {
+      return path[path.length - 1]; // ends incorrectly
     }
-
-    addNode(key) {
-        this.nodes.set(key, new Node(key));
-        return this.node(key);
+  
+    // Check connectivity along path
+    for (let i = 0; i < path.length - 1; i++) {
+      if (!graph[path[i]].has(path[i+1])) {
+        return path[i]; // stuck at this vertex
+      }
     }
+  
+    return "yes";
+  }
+  
+  // Examples
+  console.log(hamiltonianPath(["(A,B,C,D)","(A-B,A-D,B-D,A-C)","(C,A,D,B)"])); // "yes"
+  console.log(hamiltonianPath(["(A,B,C,D)","(A-B,A-D,B-D,A-C)","(D,A,B,C)"])); // "B"
+  console.log(hamiltonianPath(["(X,Y,Z)","(X-Y,Y-Z)","(X,Y,Z)"]));             // "yes"
+  console.log(hamiltonianPath(["(X,Y,Z)","(X-Y)","(X,Z,Y)"]));                 // "Z"
+  console.log(hamiltonianPath(['(X,Y,Z,Q)', '(X-Y,Y-Q,Y-Z)', '(Z,Y,Q,X)']));                 // "Z"
+  
 
-    node(key) {
-        return this.nodes.get(key);
-    }
 
-    getMissingPathConnections(nodeKeyArr) {
-        const missingConnections = [];
-        for (let i = 1; i < nodeKeyArr.length; i++) {
-            const nodeA = this.node(nodeKeyArr[i - 1]);
-            const keyB = nodeKeyArr[i];
-            if (!nodeA.hasEdge(keyB)) {
-                missingConnections.push(nodeA.key);
-            }
-        }
-        return missingConnections;
-    }
-}
 
-class Node {
-    constructor(key) {
-        this.key = key;
-        this.edges = new Map();
-    }
 
-    addEdge(key, weight = 1) {
-        this.edges.set(key, weight);
-    }
 
-    hasEdge(key) {
-        return this.edges.has(key);
-    }
-}
 
-module.exports = hamiltonianPath;
+// function hamiltonianPath(strArr) {
+//     // Parse input
+//     let [nodes, edges, path] = strArr.map(str =>
+//         str.substr(1, str.length - 2).split(',')
+//     );
+
+//     const graph = new Graph();
+
+//     // Add empty nodes
+//     nodes.forEach(key => {
+//         graph.addNode(key);
+//     });
+
+//     // Add edges
+//     edges.forEach(edge => {
+//         const [nodeA, nodeB] = edge.split('-');
+//         graph.node(nodeA).addEdge(nodeB);
+//         graph.node(nodeB).addEdge(nodeA);
+//     });
+
+//     // https://en.wikipedia.org/wiki/Hamiltonian_path
+
+//     const missingConnections = graph.getMissingPathConnections(path);
+
+//     if (missingConnections.length === 0) {
+//         return 'yes';
+//     }
+//     return missingConnections[0];
+// }
+
+// class Graph {
+//     constructor() {
+//         this.nodes = new Map();
+//     }
+
+//     addNode(key) {
+//         this.nodes.set(key, new Node(key));
+//         return this.node(key);
+//     }
+
+//     node(key) {
+//         return this.nodes.get(key);
+//     }
+
+//     getMissingPathConnections(nodeKeyArr) {
+//         const missingConnections = [];
+//         for (let i = 1; i < nodeKeyArr.length; i++) {
+//             const nodeA = this.node(nodeKeyArr[i - 1]);
+//             const keyB = nodeKeyArr[i];
+//             if (!nodeA.hasEdge(keyB)) {
+//                 missingConnections.push(nodeA.key);
+//             }
+//         }
+//         return missingConnections;
+//     }
+// }
+
+// class Node {
+//     constructor(key) {
+//         this.key = key;
+//         this.edges = new Map();
+//     }
+
+//     addEdge(key, weight = 1) {
+//         this.edges.set(key, weight);
+//     }
+
+//     hasEdge(key) {
+//         return this.edges.has(key);
+//     }
+// }
+
+// module.exports = hamiltonianPath;

@@ -19,50 +19,81 @@
  * @return {number}
  */
 function arrayJumping(arr) {
-    const max = Math.max(...arr);
-    const startIndex = arr.indexOf(max);
-
-    // Iterative "breadth-first search"
-    // `queue` stores an array of arrays.  The inner arrays represent paths of
-    // indexes.  They all start with the index of the largest number and each
-    // jump is appended and the entire new structure is stored in a new queue.
-
-    let queue = [[startIndex]];
-
-    while (queue.length !== 0) {
-        const nextQueue = [];
-
-        for (let i = 0; i < queue.length; i++) {
-            const indexList = queue[i];
-            const lastIndex = indexList[indexList.length - 1];
-
-            const left =
-                (((lastIndex - arr[lastIndex]) % arr.length) + arr.length) %
-                arr.length;
-            const right = (lastIndex + arr[lastIndex]) % arr.length;
-
-            if (left === startIndex || right === startIndex) {
-                // Success!
-                return indexList.length;
-            }
-
-            if (!indexList.includes(left)) {
-                const leftArr = indexList.slice();
-                leftArr.push(left);
-                nextQueue.push(leftArr);
-            }
-
-            if (!indexList.includes(right)) {
-                const rightArr = indexList.slice();
-                rightArr.push(right);
-                nextQueue.push(rightArr);
-            }
+    const n = arr.length;
+    const maxVal = Math.max(...arr);
+    const start = arr.indexOf(maxVal);
+  
+    let queue = [[start, 0]]; // [index, jumps]
+    let visited = new Set([start]);
+  
+    while (queue.length > 0) {
+      let [pos, jumps] = queue.shift();
+  
+      // Try both directions
+      for (let dir of [-1, 1]) {
+        let next = (pos + dir * arr[pos] + n) % n;
+  
+        if (next === start && jumps + 1 > 0) {
+          return jumps + 1; // found a cycle
         }
-        queue = nextQueue;
+  
+        if (!visited.has(next)) {
+          visited.add(next);
+          queue.push([next, jumps + 1]);
+        }
+      }
     }
-
-    // No path possible
+  
     return -1;
-}
+  }
+  
 
-module.exports = arrayJumping;
+
+// function arrayJumping(arr) {
+//     const max = Math.max(...arr);
+//     const startIndex = arr.indexOf(max);
+
+//     // Iterative "breadth-first search"
+//     // `queue` stores an array of arrays.  The inner arrays represent paths of
+//     // indexes.  They all start with the index of the largest number and each
+//     // jump is appended and the entire new structure is stored in a new queue.
+
+//     let queue = [[startIndex]];
+
+//     while (queue.length !== 0) {
+//         const nextQueue = [];
+
+//         for (let i = 0; i < queue.length; i++) {
+//             const indexList = queue[i];
+//             const lastIndex = indexList[indexList.length - 1];
+
+//             const left =
+//                 (((lastIndex - arr[lastIndex]) % arr.length) + arr.length) %
+//                 arr.length;
+//             const right = (lastIndex + arr[lastIndex]) % arr.length;
+
+//             if (left === startIndex || right === startIndex) {
+//                 // Success!
+//                 return indexList.length;
+//             }
+
+//             if (!indexList.includes(left)) {
+//                 const leftArr = indexList.slice();
+//                 leftArr.push(left);
+//                 nextQueue.push(leftArr);
+//             }
+
+//             if (!indexList.includes(right)) {
+//                 const rightArr = indexList.slice();
+//                 rightArr.push(right);
+//                 nextQueue.push(rightArr);
+//             }
+//         }
+//         queue = nextQueue;
+//     }
+
+//     // No path possible
+//     return -1;
+// }
+
+// module.exports = arrayJumping;

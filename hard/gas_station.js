@@ -24,39 +24,70 @@
  * @param  {array} strArr
  * @return {string}
  */
+
 function gasStation(strArr) {
-    // Get all possible route orders by shifting array
-    const possibleRoutes = new Map();
-    for (let i = 1; i < strArr.length; i++) {
-        const route = strArr.slice(i);
-        route.push(...strArr.slice(1, i));
-        possibleRoutes.set(i, route);
+    const N = parseInt(strArr[0], 10);
+    const stations = strArr.slice(1).map(s => {
+      const [g, c] = s.split(":").map(Number);
+      return { gas: g, cost: c };
+    });
+  
+    let total = 0;   // net gas balance for whole trip
+    let tank = 0;    // running balance
+    let start = 0;   // candidate start index
+  
+    for (let i = 0; i < N; i++) {
+      total += stations[i].gas - stations[i].cost;
+      tank += stations[i].gas - stations[i].cost;
+  
+      // If tank dips below 0 → can't start from current start
+      if (tank < 0) {
+        start = i + 1; // next station becomes new candidate
+        tank = 0;      // reset tank
+      }
     }
+  
+    return total >= 0 && start < N ? String(start) : "impossible";
+  }
+  
+  // Examples
+  console.log(gasStation(["4","3:1","2:2","1:2","0:1"])); // "1"
+  console.log(gasStation(["3","1:1","2:2","1:2"]));       // "impossible"
+  console.log(gasStation(["5","1:3","2:2","3:4","4:2","5:1"])); // "4"
+  
+// function gasStation(strArr) {
+//     // Get all possible route orders by shifting array
+//     const possibleRoutes = new Map();
+//     for (let i = 1; i < strArr.length; i++) {
+//         const route = strArr.slice(i);
+//         route.push(...strArr.slice(1, i));
+//         possibleRoutes.set(i, route);
+//     }
 
-    const routeIter = possibleRoutes[Symbol.iterator]();
+//     const routeIter = possibleRoutes[Symbol.iterator]();
 
-    for (const route of routeIter) {
-        const [routeIndex, routeArr] = route;
+//     for (const route of routeIter) {
+//         const [routeIndex, routeArr] = route;
 
-        if (routeValid(routeArr)) {
-            return routeIndex.toString();
-        }
-    }
+//         if (routeValid(routeArr)) {
+//             return routeIndex.toString();
+//         }
+//     }
 
-    return 'impossible';
-}
+//     return 'impossible';
+// }
 
-function routeValid(route) {
-    for (let i = 0, gasInTank = 0; i < route.length; i++) {
-        const [gas, distance] = route[i].split(':').map(Number);
-        gasInTank += gas;
+// function routeValid(route) {
+//     for (let i = 0, gasInTank = 0; i < route.length; i++) {
+//         const [gas, distance] = route[i].split(':').map(Number);
+//         gasInTank += gas;
 
-        if (gasInTank < distance) {
-            return false;
-        }
-        gasInTank -= distance;
-    }
-    return true;
-}
+//         if (gasInTank < distance) {
+//             return false;
+//         }
+//         gasInTank -= distance;
+//     }
+//     return true;
+// }
 
-module.exports = gasStation;
+// module.exports = gasStation;

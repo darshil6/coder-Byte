@@ -16,103 +16,146 @@
  *
  * @param  {array} strArr Array with one string element
  * @return {number} Number of times area of overlap can fit in first rectangle
+ * 
  */
+
 function overlappingRectangles(strArr) {
-    // Convert coords from this format:
-    // ['(0,0),(2,2),(2,0),(0,2),(1,0),(1,2),(6,0),(6,2)']
-    // To this format:
-    // [[0,0],[2,2],[2,0],[0,2],[1,0],[1,2],[6,0],[6,2]]
-    const coords = strArr[0]
-        .match(/(-?[0-9]+,-?[0-9]+)/g)
-        .map(pair => pair.split(',').map(num => Number(num)));
-
-    const rect0 = Rectangle.fromCoords(coords.splice(0, 4));
-    const rect1 = Rectangle.fromCoords(coords);
-
-    const overlap = Rectangle.areaOverlapping(rect0, rect1);
-
-    // Per spec, if no overlap return 0 (otherwise it would return `Infinity`)
-    if (overlap === 0) {
-        return 0;
+    // Parse input
+    const coords = strArr[0].match(/\((.*?)\)/g).map(s =>
+      s.replace(/[()]/g, "").split(",").map(Number)
+    );
+  
+    // First 4 -> rect1, last 4 -> rect2
+    const rect1 = coords.slice(0, 4);
+    const rect2 = coords.slice(4);
+  
+    // Helper to get bounds of rectangle
+    function getBounds(rect) {
+      const xs = rect.map(p => p[0]);
+      const ys = rect.map(p => p[1]);
+      return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys)
+      };
     }
+  
+    const b1 = getBounds(rect1);
+    const b2 = getBounds(rect2);
+  
+    // Areas
+    const area1 = (b1.maxX - b1.minX) * (b1.maxY - b1.minY);
+  
+    // Overlap dimensions
+    const overlapWidth = Math.max(0, Math.min(b1.maxX, b2.maxX) - Math.max(b1.minX, b2.minX));
+    const overlapHeight = Math.max(0, Math.min(b1.maxY, b2.maxY) - Math.max(b1.minY, b2.minY));
+  
+    const overlapArea = overlapWidth * overlapHeight;
+  
+    if (overlapArea === 0) return 0;
+  
+    return area1 / overlapArea;
+  }
 
-    const numOverlapFitsInRect0 = Math.floor(rect0.area() / overlap);
+  console.log(overlappingRectangles(["(0,0),(2,2),(2,0),(0,2),(1,0),(1,2),(6,0),(6,2)"]))
+  
+// function overlappingRectangles(strArr) {
+//     // Convert coords from this format:
+//     // ['(0,0),(2,2),(2,0),(0,2),(1,0),(1,2),(6,0),(6,2)']
+//     // To this format:
+//     // [[0,0],[2,2],[2,0],[0,2],[1,0],[1,2],[6,0],[6,2]]
+//     const coords = strArr[0]
+//         .match(/(-?[0-9]+,-?[0-9]+)/g)
+//         .map(pair => pair.split(',').map(num => Number(num)));
 
-    return numOverlapFitsInRect0;
-}
+//     const rect0 = Rectangle.fromCoords(coords.splice(0, 4));
+//     const rect1 = Rectangle.fromCoords(coords);
 
-function Rectangle(x, y, width, height) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-}
+//     const overlap = Rectangle.areaOverlapping(rect0, rect1);
 
-// Iterates through each point, left-to-right, top-to-bottom
-Rectangle.prototype[Symbol.iterator] = function*() {
-    for (let row = this.y; row < this.y + this.height; row++) {
-        for (let col = this.x; col < this.x + this.width; col++) {
-            yield [col, row];
-        }
-    }
-};
+//     // Per spec, if no overlap return 0 (otherwise it would return `Infinity`)
+//     if (overlap === 0) {
+//         return 0;
+//     }
 
-// Returns a new Rectangle object from an array of coordinates
-Rectangle.fromCoords = function(coordsArray) {
-    if (coordsArray.length !== 4) {
-        return null;
-    }
+//     const numOverlapFitsInRect0 = Math.floor(rect0.area() / overlap);
 
-    const xCoords = coordsArray.map(coords => coords[0]).sort();
-    const yCoords = coordsArray.map(coords => coords[1]).sort();
+//     return numOverlapFitsInRect0;
+// }
 
-    // For a valid rectangle, there should be pairs of x and y coords
-    if (
-        xCoords[0] !== xCoords[1] ||
-        xCoords[2] !== xCoords[3] ||
-        yCoords[0] !== yCoords[1] ||
-        yCoords[2] !== yCoords[3]
-    ) {
-        // Coords are not rectangle
-        return null;
-    }
+// function Rectangle(x, y, width, height) {
+//     this.x = x;
+//     this.y = y;
+//     this.width = width;
+//     this.height = height;
+// }
 
-    const [x1, , x2] = xCoords;
-    const [y1, , y2] = yCoords;
+// // Iterates through each point, left-to-right, top-to-bottom
+// Rectangle.prototype[Symbol.iterator] = function*() {
+//     for (let row = this.y; row < this.y + this.height; row++) {
+//         for (let col = this.x; col < this.x + this.width; col++) {
+//             yield [col, row];
+//         }
+//     }
+// };
 
-    const width = Math.abs(x1 - x2);
-    const height = Math.abs(y1 - y2);
-    const x = Math.min(x1, x2);
-    const y = Math.min(y1, y2);
+// // Returns a new Rectangle object from an array of coordinates
+// Rectangle.fromCoords = function(coordsArray) {
+//     if (coordsArray.length !== 4) {
+//         return null;
+//     }
 
-    return new Rectangle(x, y, width, height);
-};
+//     const xCoords = coordsArray.map(coords => coords[0]).sort();
+//     const yCoords = coordsArray.map(coords => coords[1]).sort();
 
-Rectangle.areaOverlapping = function(rectangle0, rectangle1) {
-    let overlap = 0;
-    for (const coords of rectangle1) {
-        if (rectangle0.containsCoords(coords)) {
-            overlap++;
-        }
-    }
-    return overlap;
-};
+//     // For a valid rectangle, there should be pairs of x and y coords
+//     if (
+//         xCoords[0] !== xCoords[1] ||
+//         xCoords[2] !== xCoords[3] ||
+//         yCoords[0] !== yCoords[1] ||
+//         yCoords[2] !== yCoords[3]
+//     ) {
+//         // Coords are not rectangle
+//         return null;
+//     }
 
-Rectangle.prototype.containsCoords = function(coords) {
-    let [x, y] = coords;
-    if (
-        x >= this.x &&
-        x < this.x + this.width &&
-        y >= this.y &&
-        y < this.y + this.height
-    ) {
-        return true;
-    }
-    return false;
-};
+//     const [x1, , x2] = xCoords;
+//     const [y1, , y2] = yCoords;
 
-Rectangle.prototype.area = function() {
-    return this.width * this.height;
-};
+//     const width = Math.abs(x1 - x2);
+//     const height = Math.abs(y1 - y2);
+//     const x = Math.min(x1, x2);
+//     const y = Math.min(y1, y2);
 
-module.exports = overlappingRectangles;
+//     return new Rectangle(x, y, width, height);
+// };
+
+// Rectangle.areaOverlapping = function(rectangle0, rectangle1) {
+//     let overlap = 0;
+//     for (const coords of rectangle1) {
+//         if (rectangle0.containsCoords(coords)) {
+//             overlap++;
+//         }
+//     }
+//     return overlap;
+// };
+
+// Rectangle.prototype.containsCoords = function(coords) {
+//     let [x, y] = coords;
+//     if (
+//         x >= this.x &&
+//         x < this.x + this.width &&
+//         y >= this.y &&
+//         y < this.y + this.height
+//     ) {
+//         return true;
+//     }
+//     return false;
+// };
+
+// Rectangle.prototype.area = function() {
+//     return this.width * this.height;
+// };
+
+// module.exports = overlappingRectangles;

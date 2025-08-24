@@ -14,66 +14,120 @@
  * @param  {array} strArr
  * @return {number}
  */
+
+
+
+
 function farthestNodes(strArr) {
-    const nodeKeys = new Set(strArr.join('-').split('-'));
-
-    const map = new Map();
-
-    // Initialize empty nodes
-    nodeKeys.forEach(key => {
-        map.set(key, new Node(key));
-    });
-
-    // Connect nodes
-    strArr.forEach(connection => {
-        const [nodeA, nodeB] = connection.split('-');
-        map.get(nodeA).addEdge(map.get(nodeB));
-        map.get(nodeB).addEdge(map.get(nodeA));
-    });
-
-    // Try each node as a start node
-    let longestPath = 0;
-    map.forEach(node => {
-        const path = node.getFarthestPath();
-        if (path.length > longestPath) {
-            longestPath = path.length;
+    // Step 1: Build graph
+    const graph = {};
+    for (let edge of strArr) {
+      const [u, v] = edge.split("-");
+      if (!graph[u]) graph[u] = [];
+      if (!graph[v]) graph[v] = [];
+      graph[u].push(v);
+      graph[v].push(u);
+    }
+  
+    // Helper BFS to get farthest node + distance
+    function bfs(start) {
+      const visited = new Set();
+      const queue = [[start, 0]];
+      let farthestNode = start;
+      let maxDist = 0;
+  
+      while (queue.length) {
+        const [node, dist] = queue.shift();
+        if (dist > maxDist) {
+          maxDist = dist;
+          farthestNode = node;
         }
-    });
-
-    return longestPath - 1;
-}
-
-function Node(key) {
-    this.key = key;
-    this.edges = [];
-}
-
-Node.prototype.addEdge = function(node) {
-    this.edges.push(node);
-};
-
-Node.prototype.getFarthestPath = function(visited = []) {
-    if (visited.includes(this.key)) {
-        return visited;
+        for (let nei of graph[node]) {
+          if (!visited.has(nei)) {
+            visited.add(nei);
+            queue.push([nei, dist + 1]);
+          }
+        }
+      }
+      return { farthestNode, maxDist };
     }
+  
+    // Step 2: Pick any node (first key)
+    const startNode = Object.keys(graph)[0];
+  
+    // Step 3: BFS from start → farthest node
+    const { farthestNode } = bfs(startNode);
+  
+    // Step 4: BFS again from farthest node → max distance
+    const { maxDist } = bfs(farthestNode);
+  
+    return maxDist;
+  }
+  
+  // Example:
+  console.log(farthestNodes(["a-b", "b-c", "b-d"])); // 2
+  console.log(farthestNodes(["a-b", "b-c", "c-d", "d-e"])); // 4
+  
+// function farthestNodes(strArr) {
+//     const nodeKeys = new Set(strArr.join('-').split('-'));
 
-    visited = visited.slice();
-    visited.push(this.key);
+//     const map = new Map();
 
-    const selfAndChildren = [];
+//     // Initialize empty nodes
+//     nodeKeys.forEach(key => {
+//         map.set(key, new Node(key));
+//     });
 
-    this.edges.forEach(edge => {
-        const child = edge.getFarthestPath(visited);
-        selfAndChildren.push(child);
-    });
+//     // Connect nodes
+//     strArr.forEach(connection => {
+//         const [nodeA, nodeB] = connection.split('-');
+//         map.get(nodeA).addEdge(map.get(nodeB));
+//         map.get(nodeB).addEdge(map.get(nodeA));
+//     });
 
-    if (selfAndChildren.length === 0) {
-        return visited;
-    }
+//     // Try each node as a start node
+//     let longestPath = 0;
+//     map.forEach(node => {
+//         const path = node.getFarthestPath();
+//         if (path.length > longestPath) {
+//             longestPath = path.length;
+//         }
+//     });
 
-    // Select longest of child paths to return
-    selfAndChildren.sort((a, b) => b.length - a.length);
-    return selfAndChildren[0];
-};
+//     return longestPath - 1;
+// }
 
-module.exports = farthestNodes;
+// function Node(key) {
+//     this.key = key;
+//     this.edges = [];
+// }
+
+// Node.prototype.addEdge = function(node) {
+//     this.edges.push(node);
+// };
+
+// Node.prototype.getFarthestPath = function(visited = []) {
+//     if (visited.includes(this.key)) {
+//         return visited;
+//     }
+
+//     visited = visited.slice();
+//     visited.push(this.key);
+
+//     const selfAndChildren = [];
+
+//     this.edges.forEach(edge => {
+//         const child = edge.getFarthestPath(visited);
+//         selfAndChildren.push(child);
+//     });
+
+//     if (selfAndChildren.length === 0) {
+//         return visited;
+//     }
+
+//     // Select longest of child paths to return
+//     selfAndChildren.sort((a, b) => b.length - a.length);
+//     return selfAndChildren[0];
+// };
+
+// module.exports = farthestNodes;

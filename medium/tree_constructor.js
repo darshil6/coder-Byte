@@ -18,47 +18,79 @@
  * @param  {array} strArr
  * @return {string} 'true' or 'false'
  */
-function treeConstructor(strArr) {
-    // Convert ['(1,2)','(2,4)','(5,7)','(7,2)','(9,5)']
-    // format to [[1,2],[2,4],[5,7],[7,2],[9,5]]
-    const pairs = strArr.map(str => str.match(/[\d]+/g).map(Number));
 
-    const nodesWithNoParents = [];
-    for (let i = 0; i < pairs.length; i++) {
-        if (numChildren(pairs, pairs[i][0]) > 2) {
-            return 'false';
-        }
-        if (numParents(pairs, pairs[i][1]) === 0) {
-            nodesWithNoParents.push(pairs[i][1]);
-        }
+function TreeConstructor(strArr) {
+    const childToParent = new Map();
+    const parentToChildren = new Map();
+  
+    for (let pair of strArr) {
+      // Extract numbers (child, parent)
+      let [child, parent] = pair.match(/\d+/g).map(Number);
+  
+      // Rule 1: A child cannot have more than one parent
+      if (childToParent.has(child)) return "false";
+      childToParent.set(child, parent);
+  
+      // Rule 2: A parent cannot have more than two children
+      if (!parentToChildren.has(parent)) {
+        parentToChildren.set(parent, []);
+      }
+      parentToChildren.get(parent).push(child);
+  
+      if (parentToChildren.get(parent).length > 2) return "false";
     }
+  
+    // Rule 3: There must be exactly one root
+    const allNodes = new Set([...childToParent.keys(), ...childToParent.values()]);
+    const roots = [...allNodes].filter(node => !childToParent.has(node));
+  
+    if (roots.length !== 1) return "false";
+  
+    return "true";
+  }
 
-    const uniqueNodesWithNoParents = new Set(nodesWithNoParents);
+  
+// function treeConstructor(strArr) {
+//     // Convert ['(1,2)','(2,4)','(5,7)','(7,2)','(9,5)']
+//     // format to [[1,2],[2,4],[5,7],[7,2],[9,5]]
+//     const pairs = strArr.map(str => str.match(/[\d]+/g).map(Number));
 
-    if (uniqueNodesWithNoParents.size !== 1) {
-        return 'false';
-    }
-    return 'true';
+//     const nodesWithNoParents = [];
+//     for (let i = 0; i < pairs.length; i++) {
+//         if (numChildren(pairs, pairs[i][0]) > 2) {
+//             return 'false';
+//         }
+//         if (numParents(pairs, pairs[i][1]) === 0) {
+//             nodesWithNoParents.push(pairs[i][1]);
+//         }
+//     }
 
-    function numChildren(pairs, number) {
-        let count = 0;
-        pairs.forEach(pair => {
-            if (pair[1] === number) {
-                count++;
-            }
-        });
-        return count;
-    }
+//     const uniqueNodesWithNoParents = new Set(nodesWithNoParents);
 
-    function numParents(pairs, number) {
-        let count = 0;
-        pairs.forEach(pair => {
-            if (pair[0] === number) {
-                count++;
-            }
-        });
-        return count;
-    }
-}
+//     if (uniqueNodesWithNoParents.size !== 1) {
+//         return 'false';
+//     }
+//     return 'true';
 
-module.exports = treeConstructor;
+//     function numChildren(pairs, number) {
+//         let count = 0;
+//         pairs.forEach(pair => {
+//             if (pair[1] === number) {
+//                 count++;
+//             }
+//         });
+//         return count;
+//     }
+
+//     function numParents(pairs, number) {
+//         let count = 0;
+//         pairs.forEach(pair => {
+//             if (pair[0] === number) {
+//                 count++;
+//             }
+//         });
+//         return count;
+//     }
+// }
+
+// module.exports = treeConstructor;
