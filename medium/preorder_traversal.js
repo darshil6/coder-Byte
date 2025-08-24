@@ -38,4 +38,4 @@ function preorder(strArr, index = 0) {
     return nodeAndChildren;
 }
 
-module.exports = preorderTraversal;
+// module.exports = preorderTraversal;

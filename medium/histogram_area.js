@@ -88,7 +88,7 @@ function histogramAreaBrute(arr) {
       const h = arr[i];
       let left = i - 1;
       while (left >= 0 && arr[left] >= h) left--;
-  
+
       let right = i + 1;
       while (right < arr.length && arr[right] >= h) right++;
   

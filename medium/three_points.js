@@ -17,12 +17,6 @@
  */
 
 
-
-
-
-
-
-
 function threePoints(strArr) {
     // Helper to parse "(x,y)" into [x,y]
     function parsePoint(str) {
@@ -40,7 +34,7 @@ function threePoints(strArr) {
     if (val < 0) return "right";
     return "neither";
   }
-  
+    
 // function threePoints(strArr) {
 //     // Parse input
 //     const [pointA, pointB, pointX] = strArr.map(point => {

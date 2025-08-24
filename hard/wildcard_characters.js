@@ -19,51 +19,79 @@
  * @param  {string} str
  * @return {string} 'true' or 'false'
  */
+
 function wildcardCharacters(str) {
-    // Separate inputs
-    const pair = str.split(' ');
-    const patternTokens = pair[0];
-    const matchString = pair[1];
+    let [pattern, text] = str.split(" ");
+  
+    // Handle *{N}
+    pattern = pattern.replace(/\*\{(\d+)\}/g, (_, n) => {
+      n = parseInt(n, 10);
+      return `([a-zA-Z])\\1{${n - 1}}`;
+    });
+  
+    // Handle *
+    pattern = pattern.replace(/\*/g, "([a-zA-Z])\\1{2}");
+  
+    // Handle +
+    pattern = pattern.replace(/\+/g, "[a-zA-Z]");
+  
+    // Full regex
+    let regex = new RegExp("^" + pattern + "$");
+  
+    return regex.test(text) ? "true" : "false";
+  }
+  
+  // Example Tests
+//   console.log(wildcardCharacters("++*{5} gheeeee")); // true
+//   console.log(wildcardCharacters("+* abc"));         // false
+//   console.log(wildcardCharacters("+++ dog"));        // false
+//   console.log(wildcardCharacters("+*{4} heeee"));    // true
+  
+// function wildcardCharacters(str) {
+//     // Separate inputs
+//     const pair = str.split(' ');
+//     const patternTokens = pair[0];
+//     const matchString = pair[1];
 
-    // Step 1:  Build a regular expression from the given pattern
-    let matchRegex = '^';
+//     // Step 1:  Build a regular expression from the given pattern
+//     let matchRegex = '^';
 
-    for (let i = 0, n = 1; i < patternTokens.length; i++) {
-        switch (patternTokens[i]) {
-            case '+':
-                matchRegex += '[a-z]';
-                break;
-            case '*':
-                let repeat = 0;
-                if (tokenHasLengthParameter(i)) {
-                    // Custom length
-                    repeat = Number(str[i + 2]) - 1;
-                    i = i + 3;
-                } else {
-                    // Default length 3 (one letter plus two repeats)
-                    repeat = 2;
-                }
+//     for (let i = 0, n = 1; i < patternTokens.length; i++) {
+//         switch (patternTokens[i]) {
+//             case '+':
+//                 matchRegex += '[a-z]';
+//                 break;
+//             case '*':
+//                 let repeat = 0;
+//                 if (tokenHasLengthParameter(i)) {
+//                     // Custom length
+//                     repeat = Number(str[i + 2]) - 1;
+//                     i = i + 3;
+//                 } else {
+//                     // Default length 3 (one letter plus two repeats)
+//                     repeat = 2;
+//                 }
 
-                matchRegex += '([a-z])\\' + n++ + '{' + repeat + '}';
-                break;
-            default:
-                break;
-        }
-    }
-    matchRegex += '$';
+//                 matchRegex += '([a-z])\\' + n++ + '{' + repeat + '}';
+//                 break;
+//             default:
+//                 break;
+//         }
+//     }
+//     matchRegex += '$';
 
-    // Step 2:  Apply regex to matchString and return results
-    matchRegex = new RegExp(matchRegex, 'i');
-    return String(matchRegex.test(matchString));
+//     // Step 2:  Apply regex to matchString and return results
+//     matchRegex = new RegExp(matchRegex, 'i');
+//     return String(matchRegex.test(matchString));
 
-    /* Helpers */
+//     /* Helpers */
 
-    function tokenHasLengthParameter(index) {
-        if (index + 1 < patternTokens.length && str[index + 1] === '{') {
-            return true;
-        }
-        return false;
-    }
-}
+//     function tokenHasLengthParameter(index) {
+//         if (index + 1 < patternTokens.length && str[index + 1] === '{') {
+//             return true;
+//         }
+//         return false;
+//     }
+// }
 
-module.exports = wildcardCharacters;
+// module.exports = wildcardCharacters;
