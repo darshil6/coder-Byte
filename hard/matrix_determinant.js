@@ -16,140 +16,196 @@
  * @param  {array} strArr
  * @return {number}
  */
+
+
 function matrixDeterminant(strArr) {
-    const matrixLength = Math.floor(Math.sqrt(strArr.length));
-
-    // Input array must be square
-    // 1x1 = 1 + 0 = 1
-    // 2x2 = 4 + 1 = 5
-    // 3x3 = 9 + 2 = 11
-    // 4x4 = 16 + 3 = 19
-    // 5x5 = 25 + 4 = 29
-    // 6x6 = 36 + 5 = 41
-    // ...
-    if (matrixLength * matrixLength + (matrixLength - 1) !== strArr.length) {
-        return -1;
+    // Step 1: Build matrix
+    let matrix = [];
+    let row = [];
+    for (let val of strArr) {
+      if (val === "<>") {
+        matrix.push(row);
+        row = [];
+      } else {
+        row.push(parseInt(val, 10));
+      }
     }
-
-    // Remove separators and cast to number
-    const cells = strArr.filter(element => element !== '<>').map(Number);
-
-    const matrix = buildMatrix(matrixLength, matrixLength);
-    fillMatrix(matrix, cells);
-
-    // https://en.wikipedia.org/wiki/Determinant
-    const determinant = matrixDeterminantRecursive(matrix);
-    return determinant;
-}
-
-// Returns reference to new empty matrix
-function buildMatrix(rows, columns, fillValue = 0) {
-    const newMatrix = Array(rows)
-        .fill(0)
-        .map(_ => Array(columns).fill(fillValue));
-    return newMatrix;
-}
-
-// Fill 2d matrix with 1d array
-function fillMatrix(matrix, arrElements) {
-    const rows = matrix.length;
-    const columns = matrix[0].length;
-
-    if (arrElements.length !== rows * columns) {
-        return undefined;
+    if (row.length > 0) matrix.push(row);
+  
+    // Step 2: Check square matrix
+    let n = matrix.length;
+    if (n === 0) return -1;
+    for (let r of matrix) {
+      if (r.length !== n) return -1;
     }
-
-    arrElements.forEach((element, index) => {
-        const rowIndex = Math.floor(index / columns);
-        const colIndex = index % columns;
-        matrix[rowIndex][colIndex] = element;
-    });
-}
-
-// Finds determinant of any sized matrix, recursively
-function matrixDeterminantRecursive(matrix) {
-    const rows = matrix.length;
-    const columns = matrix[0].length;
-
-    if (rows === 2 && columns === 2) {
-        return matrixDeterminant2x2(matrix);
+  
+    // Step 3: Determinant helper
+    function det(mat) {
+      let size = mat.length;
+  
+      // Base cases
+      if (size === 1) return mat[0][0];
+      if (size === 2) return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
+  
+      // Recursive Laplace expansion (first row)
+      let ans = 0;
+      for (let col = 0; col < size; col++) {
+        let subMat = mat.slice(1).map(row => row.filter((_, j) => j !== col));
+        ans += (col % 2 === 0 ? 1 : -1) * mat[0][col] * det(subMat);
+      }
+      return ans;
     }
+  
+    return det(matrix);
+  }
+  
+  // --- Example Tests ---
+  console.log(matrixDeterminant(["1","2","<>","3","4"])); 
+  // -2
+  
+  console.log(matrixDeterminant(["6"])); 
+  // 6
+  
+  console.log(matrixDeterminant(["1","2","3","<>","4","5","6"])); 
+  // -1 (not square)
+  
+  console.log(matrixDeterminant(["2","5","3","<>","1","-2","-1","<>","1","3","4"])); 
+  // Determinant = 49
+  
+// function matrixDeterminant(strArr) {
+//     const matrixLength = Math.floor(Math.sqrt(strArr.length));
 
-    let subDeterminants = [];
-    for (let i = 0; i < columns; i++) {
-        const subMatrix = reduceMatrix(matrix, [0], [i]);
-        const subDeterminant = matrixDeterminantRecursive(subMatrix);
-        subDeterminants.push(matrix[0][i] * subDeterminant);
-    }
+//     // Input array must be square
+//     // 1x1 = 1 + 0 = 1
+//     // 2x2 = 4 + 1 = 5
+//     // 3x3 = 9 + 2 = 11
+//     // 4x4 = 16 + 3 = 19
+//     // 5x5 = 25 + 4 = 29
+//     // 6x6 = 36 + 5 = 41
+//     // ...
+//     if (matrixLength * matrixLength + (matrixLength - 1) !== strArr.length) {
+//         return -1;
+//     }
 
-    // + - + - ... pattern
-    subDeterminants = subDeterminants.map((determinant, index) => {
-        const polarity = index % 2 === 0 ? 1 : -1;
-        return determinant * polarity;
-    });
+//     // Remove separators and cast to number
+//     const cells = strArr.filter(element => element !== '<>').map(Number);
 
-    const sum = subDeterminants.reduce((sum, value) => (sum += value), 0);
+//     const matrix = buildMatrix(matrixLength, matrixLength);
+//     fillMatrix(matrix, cells);
 
-    return sum;
-}
+//     // https://en.wikipedia.org/wiki/Determinant
+//     const determinant = matrixDeterminantRecursive(matrix);
+//     return determinant;
+// }
 
-// Returns determinant of 2x2 matrix
-function matrixDeterminant2x2(matrix) {
-    const rows = matrix.length;
-    const columns = matrix[0].length;
+// // Returns reference to new empty matrix
+// function buildMatrix(rows, columns, fillValue = 0) {
+//     const newMatrix = Array(rows)
+//         .fill(0)
+//         .map(_ => Array(columns).fill(fillValue));
+//     return newMatrix;
+// }
 
-    if (columns !== 2 || rows !== 2) {
-        return undefined;
-    }
+// // Fill 2d matrix with 1d array
+// function fillMatrix(matrix, arrElements) {
+//     const rows = matrix.length;
+//     const columns = matrix[0].length;
 
-    const [a, b] = matrix[0];
-    const [c, d] = matrix[1];
+//     if (arrElements.length !== rows * columns) {
+//         return undefined;
+//     }
 
-    const determinant = a * d - b * c;
+//     arrElements.forEach((element, index) => {
+//         const rowIndex = Math.floor(index / columns);
+//         const colIndex = index % columns;
+//         matrix[rowIndex][colIndex] = element;
+//     });
+// }
 
-    return determinant;
-}
+// // Finds determinant of any sized matrix, recursively
+// function matrixDeterminantRecursive(matrix) {
+//     const rows = matrix.length;
+//     const columns = matrix[0].length;
 
-// Returns a new matrix without specified rows or columns
-function reduceMatrix(matrix, ignoreRows, ignoreColumns) {
-    const rows = matrix.length;
-    const columns = matrix[0].length;
+//     if (rows === 2 && columns === 2) {
+//         return matrixDeterminant2x2(matrix);
+//     }
 
-    let newMatrix = copyMatrix(matrix);
+//     let subDeterminants = [];
+//     for (let i = 0; i < columns; i++) {
+//         const subMatrix = reduceMatrix(matrix, [0], [i]);
+//         const subDeterminant = matrixDeterminantRecursive(subMatrix);
+//         subDeterminants.push(matrix[0][i] * subDeterminant);
+//     }
 
-    // `null` out values to be ignored
-    newMatrix.forEach((row, rowIndex) => {
-        if (ignoreRows.includes(rowIndex)) {
-            newMatrix[rowIndex] = null;
-        } else {
-            row.forEach((value, colIndex) => {
-                if (ignoreColumns.includes(colIndex)) {
-                    newMatrix[rowIndex][colIndex] = null;
-                }
-            });
-        }
-    });
+//     // + - + - ... pattern
+//     subDeterminants = subDeterminants.map((determinant, index) => {
+//         const polarity = index % 2 === 0 ? 1 : -1;
+//         return determinant * polarity;
+//     });
 
-    // remove `null` valued rows
-    newMatrix = newMatrix.filter(row => row !== null);
+//     const sum = subDeterminants.reduce((sum, value) => (sum += value), 0);
 
-    // remove `null` valued columns
-    newMatrix = newMatrix.map(row => row.filter(col => col !== null));
+//     return sum;
+// }
 
-    return newMatrix;
-}
+// // Returns determinant of 2x2 matrix
+// function matrixDeterminant2x2(matrix) {
+//     const rows = matrix.length;
+//     const columns = matrix[0].length;
 
-// Performs a deep copy of a 2d array
-function copyMatrix(matrix) {
-    const rows = matrix.length;
-    const columns = matrix[0].length;
-    const newMatrix = buildMatrix(rows, columns);
-    matrix.forEach((row, rowIndex) => {
-        row.forEach((value, colIndex) => {
-            newMatrix[rowIndex][colIndex] = value;
-        });
-    });
-    return newMatrix;
-}
+//     if (columns !== 2 || rows !== 2) {
+//         return undefined;
+//     }
 
-module.exports = matrixDeterminant;
+//     const [a, b] = matrix[0];
+//     const [c, d] = matrix[1];
+
+//     const determinant = a * d - b * c;
+
+//     return determinant;
+// }
+
+// // Returns a new matrix without specified rows or columns
+// function reduceMatrix(matrix, ignoreRows, ignoreColumns) {
+//     const rows = matrix.length;
+//     const columns = matrix[0].length;
+
+//     let newMatrix = copyMatrix(matrix);
+
+//     // `null` out values to be ignored
+//     newMatrix.forEach((row, rowIndex) => {
+//         if (ignoreRows.includes(rowIndex)) {
+//             newMatrix[rowIndex] = null;
+//         } else {
+//             row.forEach((value, colIndex) => {
+//                 if (ignoreColumns.includes(colIndex)) {
+//                     newMatrix[rowIndex][colIndex] = null;
+//                 }
+//             });
+//         }
+//     });
+
+//     // remove `null` valued rows
+//     newMatrix = newMatrix.filter(row => row !== null);
+
+//     // remove `null` valued columns
+//     newMatrix = newMatrix.map(row => row.filter(col => col !== null));
+
+//     return newMatrix;
+// }
+
+// // Performs a deep copy of a 2d array
+// function copyMatrix(matrix) {
+//     const rows = matrix.length;
+//     const columns = matrix[0].length;
+//     const newMatrix = buildMatrix(rows, columns);
+//     matrix.forEach((row, rowIndex) => {
+//         row.forEach((value, colIndex) => {
+//             newMatrix[rowIndex][colIndex] = value;
+//         });
+//     });
+//     return newMatrix;
+// }
+
+// module.exports = matrixDeterminant;
