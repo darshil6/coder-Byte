@@ -17,7 +17,6 @@
  * @return {number}
  */
 
-
 function matrixDeterminant(strArr) {
     // Step 1: Build matrix
     let matrix = [];
@@ -36,10 +35,10 @@ function matrixDeterminant(strArr) {
     let n = matrix.length;
     if (n === 0) return -1;
     for (let r of matrix) {
-      if (r.length !== n) return -1;
+      if (r.length !== n) return -1; // Not square
     }
   
-    // Step 3: Determinant helper
+    // Step 3: Recursive determinant helper
     function det(mat) {
       let size = mat.length;
   
@@ -47,10 +46,13 @@ function matrixDeterminant(strArr) {
       if (size === 1) return mat[0][0];
       if (size === 2) return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
   
-      // Recursive Laplace expansion (first row)
+      // Recursive case: Laplace expansion along first row
       let ans = 0;
       for (let col = 0; col < size; col++) {
+        // Build submatrix without row 0 and column `col`
         let subMat = mat.slice(1).map(row => row.filter((_, j) => j !== col));
+  
+        // Add with sign alternating
         ans += (col % 2 === 0 ? 1 : -1) * mat[0][col] * det(subMat);
       }
       return ans;
@@ -60,18 +62,29 @@ function matrixDeterminant(strArr) {
   }
   
   // --- Example Tests ---
+  
   console.log(matrixDeterminant(["1","2","<>","3","4"])); 
-  // -2
+  // -2 (det of 2x2)
   
   console.log(matrixDeterminant(["6"])); 
-  // 6
+  // 6 (det of 1x1)
   
   console.log(matrixDeterminant(["1","2","3","<>","4","5","6"])); 
   // -1 (not square)
   
   console.log(matrixDeterminant(["2","5","3","<>","1","-2","-1","<>","1","3","4"])); 
-  // Determinant = 49
+  // 49 (det of 3x3)
   
+  console.log(matrixDeterminant([
+    "1","0","2","-1","<>",
+    "3","0","0","5","<>",
+    "2","1","4","-3","<>",
+    "1","0","5","0"
+  ])); 
+  // 30 (det of 4x4)
+  
+// Determinant = 49
+
 // function matrixDeterminant(strArr) {
 //     const matrixLength = Math.floor(Math.sqrt(strArr.length));
 
